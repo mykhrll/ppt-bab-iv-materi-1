@@ -1,0 +1,15 @@
+document.addEventListener('DOMContentLoaded',()=>{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const slides=$$('.slide'),bar=$('#bar'),count=$('#count');let cur=0;
+function show(n){cur=Math.max(0,Math.min(slides.length-1,n));slides.forEach((x,i)=>x.classList.toggle('active',i===cur));bar.style.width=((cur+1)/slides.length*100)+'%';count.textContent=(cur+1)+' / '+slides.length;$('#prev').disabled=cur===0;$('#next').disabled=cur===slides.length-1;slides[cur].scrollTop=0}
+$('#prev').onclick=()=>show(cur-1);$('#next').onclick=()=>show(cur+1);$('#start').onclick=()=>show(1);
+document.addEventListener('keydown',e=>{if(e.target.matches('textarea,input,button,a'))return;if(e.key==='ArrowRight')show(cur+1);if(e.key==='ArrowLeft')show(cur-1)});
+$('#fullscreen').onclick=async()=>{if(!document.fullscreenElement)await document.documentElement.requestFullscreen?.();else await document.exitFullscreen?.()};
+$$('.step').forEach(b=>b.onclick=()=>{$$('.step').forEach(x=>x.classList.toggle('active',x===b));$$('.step-panel').forEach(p=>p.hidden=p.dataset.panel!==b.dataset.step)});
+let score=0,done=0;$$('.case').forEach(card=>card.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{if(card.dataset.done)return;card.dataset.done='1';done++;const ok=b.dataset.choice===card.dataset.correct,fb=card.querySelector('.feedback');fb.textContent=ok?'Tepat. '+card.querySelector('.explain').textContent:'Belum tepat. '+card.querySelector('.explain').textContent;fb.classList.add(ok?'good':'bad');if(ok)score++;if(done===$$('.case').length){const s=$('#caseScore');s.hidden=false;s.textContent='Skor cek cepat: '+score+' dari '+done+' situasi.'}}));
+let qi=0,qscore=0;function qshow(){ $$('.question').forEach((q,i)=>q.classList.toggle('active',i===qi));$('#nextQ').hidden=qi===$$('.question').length-1;$('#showScore').hidden=qi!==$$('.question').length-1;$('#nextQ').disabled=true;$('#quizScore').textContent=''}
+$$('.question').forEach(q=>q.querySelectorAll('.answer').forEach(b=>b.onclick=()=>{if(q.dataset.done)return;q.dataset.done='1';const ok=b.dataset.correct==='true';b.classList.add(ok?'selected':'wrong');if(ok)qscore++;$('#nextQ').disabled=false}));
+$('#nextQ').onclick=()=>{qi=Math.min(qi+1,$$('.question').length-1);qshow()};$('#showScore').onclick=()=>{$('#quizScore').textContent='Nilai: '+qscore+' / '+$$('.question').length};
+let sec=900,timer=null;const timerEl=$('#timer'),toggle=$('#timerToggle');function draw(){timerEl.textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+toggle.onclick=()=>{if(timer){clearInterval(timer);timer=null;toggle.textContent='Mulai'}else{toggle.textContent='Jeda';timer=setInterval(()=>{if(sec>0){sec--;draw()}else{clearInterval(timer);timer=null;toggle.textContent='Mulai'}},1000)}};draw();show(0);
+});
